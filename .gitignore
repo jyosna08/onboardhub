@@ -1,0 +1,12 @@
+target/
+node_modules/
+dist/
+coverage/
+.env
+docker/.env
+*.log
+*.pem
+.idea/
+.vscode/
+*.iml
+hs_err_pid*
