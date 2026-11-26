@@ -73,3 +73,12 @@ Rules: one component per file; pages only compose components; components never c
 - Dates (`yyyy-MM-dd`) are shown as local dates without time-zone shifts; timestamps are parsed as UTC through `utils/dateTime.js`.
 - Mutating actions use the duplicate-submit guard (`useSubmitGuard`) and disabled buttons while pending.
 - Every page has loading skeletons, an error banner with retry and an empty state.
+
+## 6. Visual Design v2
+
+- **Shell:** dark slate side navigation with a gradient logo mark, light content area, sticky top bar; the sidebar collapses behind a menu button on small screens.
+- **Dashboard:** gradient welcome banner (greeting, role, today's date), KPI cards with coloured icon chips and a subtle hover lift, asset stock tiles with one icon per asset type and an available/assigned bar.
+- **Employees:** initials avatars (colour derived from the name), status chips with a coloured dot, gradient progress bars, tables turn into stacked cards on small screens.
+- **Employee detail:** header card with avatar; the checklist is a vertical timeline with check circles, owner badges and overdue dates in the danger colour.
+- **Feedback:** skeleton loaders, 150 ms transitions, visible focus rings; animations are disabled with `prefers-reduced-motion`.
+- **Constraint:** only Tailwind and lucide-react icons (no extra UI libraries).
