@@ -23,3 +23,16 @@ export function validateRegister({ fullName = '', email = '', password = '' } = 
   else if (password.length < PASSWORD_MIN_LENGTH || password.length > PASSWORD_MAX_LENGTH) errors.password = `Password must be ${PASSWORD_MIN_LENGTH}–${PASSWORD_MAX_LENGTH} characters.`
   return errors
 }
+
+export function validateCreateEmployee({ fullName = '', email = '', jobTitle = '', joiningDate = '' } = {}) {
+  const errors = {}
+  if (!fullName.trim()) errors.fullName = 'Full name is required.'
+  else if (fullName.trim().length > 100) errors.fullName = 'Name must be 100 characters or fewer.'
+  if (!email.trim()) errors.email = 'Email is required.'
+  else if (email.length > EMAIL_MAX_LENGTH) errors.email = `Email must be ${EMAIL_MAX_LENGTH} characters or fewer.`
+  else if (!emailPattern.test(email.trim())) errors.email = 'Enter a valid email address.'
+  if (!jobTitle.trim()) errors.jobTitle = 'Job title is required.'
+  else if (jobTitle.trim().length > 100) errors.jobTitle = 'Job title must be 100 characters or fewer.'
+  if (!joiningDate) errors.joiningDate = 'Joining date is required.'
+  return errors
+}
