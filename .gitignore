@@ -10,3 +10,5 @@ docker/.env
 .vscode/
 *.iml
 hs_err_pid*
+
+_seed/

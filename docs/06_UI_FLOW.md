@@ -19,7 +19,7 @@ React 18 + Vite 5 + Tailwind CSS 3.4. Dev server on port 3001. API base URL from
 
 **Login / Register:** email, password (and name for register), inline validation, API error banner, loading state. Register states that HR and IT accounts are created by an administrator.
 
-**Dashboard:** five KPI cards (Pending, Onboarding, Active employees, Open tasks, Overdue tasks; overdue highlighted) from `/api/onboarding/dashboard`, an asset stock strip from `/api/assets/summary` (per type: available / assigned), and a "Needs attention" list of employees with overdue tasks.
+**Dashboard:** five KPI cards (Pending, Onboarding, Active employees, Open tasks, Overdue tasks; overdue highlighted) from `/api/onboarding/dashboard`, an asset stock strip from `/api/assets/summary` (per type: available / assigned), and an "Onboarding in progress" list (employees that are not yet ACTIVE, soonest joining date first, with their task progress).
 
 **Employees:** search box (debounced), status and department filters, table (code, name, department, title, joining date, status chip, progress bar `done/total`), "Add employee" button (`HR`, `ADMIN`). Row click opens the detail page.
 
