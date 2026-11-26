@@ -27,6 +27,7 @@ import com.onboardhub.employee.security.AuthenticatedUser;
 import com.onboardhub.employee.service.ChecklistFactory;
 import com.onboardhub.employee.service.EmployeeService;
 import com.onboardhub.employee.service.EmployeeStatusCalculator;
+import com.onboardhub.employee.service.EmployeeStatusUpdater;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -47,7 +48,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final OnboardingTaskRepository tasks;
     private final ChecklistFactory checklistFactory;
     private final EmployeeMapper mapper;
-    private final EmployeeStatusCalculator statusCalculator;
+    private final EmployeeStatusUpdater statusUpdater;
     private final Clock clock;
 
     public EmployeeServiceImpl(EmployeeRepository employees, OnboardingTaskRepository tasks,
@@ -57,7 +58,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         this.tasks = tasks;
         this.checklistFactory = checklistFactory;
         this.mapper = mapper;
-        this.statusCalculator = statusCalculator;
+        this.statusUpdater = new EmployeeStatusUpdater(statusCalculator);
         this.clock = clock;
     }
 
@@ -201,15 +202,8 @@ public class EmployeeServiceImpl implements EmployeeService {
     private void recomputeEmployeeStatus(Employee employee) {
         List<TaskStatus> statuses = tasks.findByEmployee_IdOrderBySortOrderAsc(employee.getId()).stream()
                 .map(OnboardingTask::getStatus).toList();
-        applyDerivedStatus(employee, statusCalculator.calculate(statuses));
-        employee.setUpdatedAt(LocalDateTime.now(clock));
+        statusUpdater.update(employee, statuses, LocalDateTime.now(clock));
         employees.save(employee);
-    }
-
-    private void applyDerivedStatus(Employee employee, EmployeeStatus status) {
-        if (status == EmployeeStatus.ACTIVE) employee.completeOnboarding(LocalDateTime.now(clock));
-        else if (status == EmployeeStatus.ONBOARDING) employee.markOnboardingStarted();
-        else employee.markPending();
     }
 
     @Override
