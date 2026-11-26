@@ -9,6 +9,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.onboardhub.employee.client.AssetClient;
+import com.onboardhub.employee.client.AssetRemoteResponse;
 import com.onboardhub.employee.entity.Employee;
 import com.onboardhub.employee.entity.OnboardingTask;
 import com.onboardhub.employee.enums.AssetType;
@@ -16,6 +18,9 @@ import com.onboardhub.employee.enums.Department;
 import com.onboardhub.employee.enums.EmployeeStatus;
 import com.onboardhub.employee.enums.TaskCategory;
 import com.onboardhub.employee.enums.TaskStatus;
+import com.onboardhub.employee.exception.AssetConflictException;
+import com.onboardhub.employee.exception.AssetServiceUnavailableException;
+import com.onboardhub.employee.exception.ResourceNotFoundException;
 import com.onboardhub.employee.repository.EmployeeRepository;
 import com.onboardhub.employee.repository.OnboardingTaskRepository;
 import io.jsonwebtoken.Jwts;
@@ -33,10 +38,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doThrow;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -46,6 +55,7 @@ class EmployeeControllerIntegrationTest {
     @Autowired private ObjectMapper objectMapper;
     @Autowired private EmployeeRepository employees;
     @Autowired private OnboardingTaskRepository tasks;
+    @MockBean private AssetClient assetClient;
     @Value("${app.jwt.secret}") private String jwtSecret;
 
     @BeforeEach
@@ -177,6 +187,89 @@ class EmployeeControllerIntegrationTest {
                 .andExpect(jsonPath("$.openTasks").value(12)).andExpect(jsonPath("$.overdueTasks").value(12));
         mvc.perform(get("/api/onboarding/dashboard").header("Authorization", bearer("person@example.com", "EMPLOYEE")))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void assignmentEndpointCompletesEquipmentTaskAndEnforcesPermissionsAndErrors() throws Exception {
+        long employeeId = createAndReadId("Asset Person", "asset-person@example.com", "ENGINEERING", "HR",
+                "[\"LAPTOP\",\"MONITOR\"]");
+        java.util.List<OnboardingTask> employeeTasks = tasks.findByEmployee_IdOrderBySortOrderAsc(employeeId);
+        java.util.List<OnboardingTask> equipmentTasks = employeeTasks.stream()
+                .filter(task -> task.getCategory() == TaskCategory.EQUIPMENT).toList();
+        OnboardingTask equipment = equipmentTasks.get(0);
+        when(assetClient.assign(any(), any())).thenReturn(new AssetRemoteResponse(7L, "LAP-0007", AssetType.LAPTOP,
+                "Dell", "Latitude 5440", "serial", "ASSIGNED"));
+        mvc.perform(post("/api/onboarding/tasks/{taskId}/assign-asset", equipment.getId())
+                        .header("Authorization", bearer("it@example.com", "IT"))
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"assetId\":7}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("DONE"))
+                .andExpect(jsonPath("$.assetTag").value("LAP-0007"))
+                .andExpect(jsonPath("$.assetLabel").value("Dell Latitude 5440"))
+                .andExpect(jsonPath("$.completedByName").value("Test IT"));
+        assertThat(employees.findById(employeeId).orElseThrow().getStatus()).isEqualTo(EmployeeStatus.ONBOARDING);
+        mvc.perform(post("/api/onboarding/tasks/{taskId}/assign-asset", equipment.getId())
+                        .header("Authorization", bearer("it@example.com", "IT"))
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"assetId\":7}"))
+                .andExpect(status().isConflict()).andExpect(jsonPath("$.message").value("This task is already completed"));
+        mvc.perform(post("/api/onboarding/tasks/{taskId}/assign-asset", equipment.getId())
+                        .header("Authorization", bearer("hr@example.com", "HR"))
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"assetId\":7}"))
+                .andExpect(status().isForbidden());
+        mvc.perform(post("/api/onboarding/tasks/{taskId}/assign-asset", equipment.getId())
+                        .header("Authorization", bearer("person@example.com", "EMPLOYEE"))
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"assetId\":7}"))
+                .andExpect(status().isForbidden());
+        mvc.perform(post("/api/onboarding/tasks/{taskId}/assign-asset", equipment.getId())
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"assetId\":7}"))
+                .andExpect(status().isUnauthorized());
+        mvc.perform(post("/api/onboarding/tasks/{taskId}/assign-asset", equipment.getId())
+                        .header("Authorization", bearer("it@example.com", "IT"))
+                        .contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isBadRequest());
+        OnboardingTask documentation = employeeTasks.stream()
+                .filter(task -> task.getCategory() != TaskCategory.EQUIPMENT).findFirst().orElseThrow();
+        mvc.perform(post("/api/onboarding/tasks/{taskId}/assign-asset", documentation.getId())
+                        .header("Authorization", bearer("it@example.com", "IT"))
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"assetId\":8}"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value("This task is not an equipment task"));
+        when(assetClient.assign(any(), any())).thenReturn(new AssetRemoteResponse(8L, "MON-0008", AssetType.MONITOR,
+                "Dell", "P2422H", "serial2", "ASSIGNED"));
+        mvc.perform(post("/api/onboarding/tasks/{taskId}/assign-asset", equipmentTasks.get(1).getId())
+                        .header("Authorization", bearer("it@example.com", "IT"))
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"assetId\":8}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("DONE"));
+        for (OnboardingTask openTask : employeeTasks) {
+            if (openTask.getCategory() != TaskCategory.EQUIPMENT) {
+                updateTask(openTask.getId(), "DONE", openTask.getOwnerRole().name()).andExpect(status().isOk());
+            }
+        }
+        assertThat(employees.findById(employeeId).orElseThrow().getStatus()).isEqualTo(EmployeeStatus.ACTIVE);
+    }
+
+    @Test
+    void remoteAssignmentErrorsLeaveTaskTodo() throws Exception {
+        long employeeId = createAndReadId("Asset Error", "asset-error@example.com", "ENGINEERING", "HR",
+                "[\"LAPTOP\"]");
+        OnboardingTask equipment = tasks.findByEmployee_IdOrderBySortOrderAsc(employeeId).stream()
+                .filter(task -> task.getCategory() == TaskCategory.EQUIPMENT).findFirst().orElseThrow();
+        doThrow(new AssetConflictException("Asset unavailable")).when(assetClient).assign(any(), any());
+        mvc.perform(post("/api/onboarding/tasks/{taskId}/assign-asset", equipment.getId())
+                        .header("Authorization", bearer("it@example.com", "IT"))
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"assetId\":7}"))
+                .andExpect(status().isConflict());
+        assertThat(tasks.findById(equipment.getId()).orElseThrow().getStatus()).isEqualTo(TaskStatus.TODO);
+        doThrow(new ResourceNotFoundException("Asset not found")).when(assetClient).assign(any(), any());
+        mvc.perform(post("/api/onboarding/tasks/{taskId}/assign-asset", equipment.getId())
+                        .header("Authorization", bearer("it@example.com", "IT"))
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"assetId\":7}"))
+                .andExpect(status().isNotFound());
+        doThrow(new AssetServiceUnavailableException()).when(assetClient).assign(any(), any());
+        mvc.perform(post("/api/onboarding/tasks/{taskId}/assign-asset", equipment.getId())
+                        .header("Authorization", bearer("it@example.com", "IT"))
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"assetId\":7}"))
+                .andExpect(status().isServiceUnavailable());
+        assertThat(tasks.findById(equipment.getId()).orElseThrow().getStatus()).isEqualTo(TaskStatus.TODO);
     }
 
     @Test

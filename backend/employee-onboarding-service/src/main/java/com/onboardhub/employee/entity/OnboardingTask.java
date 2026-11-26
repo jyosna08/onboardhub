@@ -96,11 +96,22 @@ public class OnboardingTask {
     }
 
     public void setStatus(TaskStatus status) { this.status = status; }
+    public void setAssetSnapshot(Long assetId, String assetTag, String assetLabel) {
+        this.assetId = assetId;
+        this.assetTag = assetTag;
+        this.assetLabel = assetLabel;
+    }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
     public void markCompleted(LocalDateTime completedAt, String completedByName) {
         this.status = TaskStatus.DONE;
         this.completedAt = completedAt;
         this.completedByName = completedByName;
+    }
+    public void assignAsset(Long assetId, String assetTag, String assetLabel,
+            LocalDateTime completedAt, String completedByName) {
+        setAssetSnapshot(assetId, assetTag, assetLabel);
+        markCompleted(completedAt, completedByName);
+        this.updatedAt = completedAt;
     }
     public void clearCompletion() {
         this.completedAt = null;
