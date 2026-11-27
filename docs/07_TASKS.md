@@ -19,6 +19,21 @@ Each task = one Codex prompt (one module at a time). Estimates are Codex working
 | T-502 | Production files (Compose prod, Caddy, EC2 scripts, Vercel config) | P1       | 30 min | T-402        | `docker-compose.prod.yml`, `Caddyfile`, scripts                                                          | Compose config validates                                      |
 | T-503 | Deploy to AWS and Vercel, final docs and prompt log                | P1       | 2 h    | T-502        | Live URLs, screenshots, `docs/11_PROMPTS.md`                                                             | Full flow works on the live URLs                              |
 
-## Prompt plan (10 prompts)
+## Prompt plan
 
-1 foundation (T-101, T-102, T-103) · 2 asset service (T-201) · 3 employee service (T-202) · 4 frontend foundation (T-301) · 5 frontend employees and onboarding (T-302) · 6 frontend assets, team, my onboarding (T-303) · 7 Docker (T-401) · 8 CI/CD (T-402) · 9 Postman, test report, README (T-501) · 10 production files (T-502). Deployment and screenshots (T-503) are manual steps.
+| Prompt | Scope | Status |
+| :--- | :--- | :--- |
+| 1A | `discovery-server` and `api-gateway` | Done |
+| 1B | `auth-team-service` | Done |
+| 2 | `asset-inventory-service` | Done |
+| 3A | Employee core | Done |
+| 3B | Assign-asset flow | Done |
+| 4 | Frontend foundation | Done |
+| 5 | Frontend dashboard and employees | Done |
+| 6 | Frontend assets, team, and my onboarding | Done |
+| 7 | Docker | Done |
+| 8 | CI/CD and smoke test | Done |
+| 9 | Postman, test report, and README | In progress |
+| 10 | Production files | Planned |
+| 11 | Final docs after deployment | Planned |
+| Manual | Deployment | Pending |
