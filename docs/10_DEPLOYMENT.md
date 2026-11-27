@@ -37,7 +37,7 @@ Triggers: push and pull request to `main` and `develop`, plus manual runs; a new
 1. `backend-tests`: matrix of the five services on JDK 17, `mvn -B test`.
 2. `frontend`: Node 20, `npm ci`, `npm test`, `npm run build`.
 3. `docker-build`: builds the six images (five services and frontend) with Buildx cache; pushes `<DOCKER_USERNAME>/onboardhub-<name>` with tags `latest` and the commit SHA only on a push to `main`.
-4. `compose-smoke` (push to `main` or manual): starts the full stack, waits until every container is healthy, then registers, logs in and calls the gateway with retries for 502/503/504 (service discovery needs time to propagate).
+4. `compose-smoke` (every pull request and push): builds and starts the full stack with Docker Compose, waits until every container is healthy and Eureka lists the four registered services, then runs `scripts/smoke-test.sh`: admin login, creation of HR and IT users, employee creation with the generated checklist, asset creation, role checks (403/401), asset assignment through the Feign call, duplicate assignment conflict (409), employee status change, ownership check (404) and asset return. Gateway answers 502/503/504 are retried because service discovery needs time to propagate.
 
 Secrets: `DOCKER_USERNAME`, `DOCKER_PASSWORD` (Docker Hub access token, Read and Write).
 
