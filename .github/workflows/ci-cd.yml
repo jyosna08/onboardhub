@@ -208,6 +208,8 @@ jobs:
         env:
           BASE_URL: http://localhost:8090
         run: bash scripts/smoke-test.sh
+      - name: Postman collection (newman)
+        run: npx --yes newman run postman/OnboardHub.postman_collection.json -e postman/OnboardHub.local.postman_environment.json --env-var "baseUrl=http://localhost:8090" --env-var "adminEmail=$ADMIN_EMAIL" --env-var "adminPassword=$ADMIN_PASSWORD" --timeout-request 60000
       - name: Show compose status
         if: always()
         run: docker compose -f docker/docker-compose.yml ps
