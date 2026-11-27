@@ -830,7 +830,7 @@
                   "pm.test(\"HTTP status is 201\", function () { pm.response.to.have.status(201); });",
                   "const requiredIttoken = pm.collectionVariables.get(\"itToken\") || pm.environment.get(\"itToken\");",
                   "pm.test(\"Required variable itToken is available\", function () { pm.expect(requiredIttoken, \"Run Login IT first; itToken is missing.\").to.be.ok; });",
-                  "pm.test(\"Response contains LAP tag && AVAILABLE status\", function () { pm.expect((body !== null && typeof body === \"object\" && !Array.isArray(body)) && typeof body.assetTag === \"string\" && (body.assetTag || \"\").startswith(\"LAP-\") && body.status == \"AVAILABLE\").to.be.true; });",
+                  "pm.test(\"Response contains LAP tag && AVAILABLE status\", function () { pm.expect((body !== null && typeof body === \"object\" && !Array.isArray(body)) && typeof body.assetTag === \"string\" && (body.assetTag || \"\").startsWith(\"LAP-\") && body.status == \"AVAILABLE\").to.be.true; });",
                   "storeRuntime(\"laptopAssetId\", body.id);",
                   "storeRuntime(\"laptopAssetTag\", body.assetTag);",
                   "storeRuntime(\"serialA\", body.serialNumber);"
@@ -884,7 +884,7 @@
                   "pm.test(\"HTTP status is 201\", function () { pm.response.to.have.status(201); });",
                   "const requiredIttoken = pm.collectionVariables.get(\"itToken\") || pm.environment.get(\"itToken\");",
                   "pm.test(\"Required variable itToken is available\", function () { pm.expect(requiredIttoken, \"Run Login IT first; itToken is missing.\").to.be.ok; });",
-                  "pm.test(\"Response contains MON tag && AVAILABLE status\", function () { pm.expect((body !== null && typeof body === \"object\" && !Array.isArray(body)) && typeof body.assetTag === \"string\" && (body.assetTag || \"\").startswith(\"MON-\") && body.status == \"AVAILABLE\").to.be.true; });",
+                  "pm.test(\"Response contains MON tag && AVAILABLE status\", function () { pm.expect((body !== null && typeof body === \"object\" && !Array.isArray(body)) && typeof body.assetTag === \"string\" && (body.assetTag || \"\").startsWith(\"MON-\") && body.status == \"AVAILABLE\").to.be.true; });",
                   "storeRuntime(\"monitorAssetId\", body.id);",
                   "storeRuntime(\"serialB\", body.serialNumber);"
                 ]
@@ -1373,7 +1373,7 @@
                   "pm.test(\"HTTP status is 200\", function () { pm.response.to.have.status(200); });",
                   "const requiredHrtoken = pm.collectionVariables.get(\"hrToken\") || pm.environment.get(\"hrToken\");",
                   "pm.test(\"Required variable hrToken is available\", function () { pm.expect(requiredHrtoken, \"Run Login HR first; hrToken is missing.\").to.be.ok; });",
-                  "pm.test(\"Response contains six byType entries\", function () { pm.expect((body !== null && typeof body === \"object\" && !Array.isArray(body)) && isinstance(body.byType, list) && (body.byType || []).length == 6).to.be.true; });"
+                  "pm.test(\"Response contains six byType entries\", function () { pm.expect((body !== null && typeof body === \"object\" && !Array.isArray(body)) && Array.isArray(body.byType) && (body.byType || []).length == 6).to.be.true; });"
                 ]
               }
             }
@@ -1430,14 +1430,14 @@
                   "pm.test(\"HTTP status is 201\", function () { pm.response.to.have.status(201); });",
                   "const requiredHrtoken = pm.collectionVariables.get(\"hrToken\") || pm.environment.get(\"hrToken\");",
                   "pm.test(\"Required variable hrToken is available\", function () { pm.expect(requiredHrtoken, \"Run Login HR first; hrToken is missing.\").to.be.ok; });",
-                  "pm.test(\"Response contains employee code && seven-task checklist\", function () { pm.expect((body !== null && typeof body === \"object\" && !Array.isArray(body)) && typeof body.employeeCode === \"string\" && (body.employeeCode || \"\").startswith(\"EMP-\") && isinstance(body.tasks, list) && (body.tasks || []).length == 7).to.be.true; });",
+                  "pm.test(\"Response contains employee code && seven-task checklist\", function () { pm.expect((body !== null && typeof body === \"object\" && !Array.isArray(body)) && typeof body.employeeCode === \"string\" && (body.employeeCode || \"\").startsWith(\"EMP-\") && Array.isArray(body.tasks) && (body.tasks || []).length == 7).to.be.true; });",
                   "storeRuntime(\"employeeId\", body.id);",
                   "storeRuntime(\"employeeEmail\", body.email);",
                   "const tasks = Array.isArray(body.tasks) ? body.tasks : [];",
                   "const firstHrTask = tasks.find(function (task) { return task.ownerRole === \"HR\"; });",
                   "const firstAccountTask = tasks.find(function (task) { return task.ownerRole === \"IT\" && task.category === \"ACCOUNT_SETUP\"; });",
                   "const laptopTask = tasks.find(function (task) { return task.category === \"EQUIPMENT\" && task.assetType === \"LAPTOP\"; });",
-                  "pm.test(\"Checklist has required task ids\", function () { pm.expect(firstHrTask && firstAccountTask && laptopTask, \"HR, ACCOUNT_SETUP, || LAPTOP task id is missing\").to.exist; });",
+                  "pm.test(\"Checklist has required task ids\", function () { pm.expect(firstHrTask && firstAccountTask && laptopTask, \"HR, ACCOUNT_SETUP, or LAPTOP task id is missing\").to.exist; });",
                   "if (firstHrTask) storeRuntime(\"hrTaskId\", firstHrTask.id);",
                   "if (firstAccountTask) storeRuntime(\"accountTaskId\", firstAccountTask.id);",
                   "if (laptopTask) storeRuntime(\"equipmentTaskId\", laptopTask.id);"
