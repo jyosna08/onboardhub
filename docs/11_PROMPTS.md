@@ -19,6 +19,8 @@ The work followed an architect-style plan based on the project requirements and 
 | 7 | Docker Compose | `feature/docker-compose` | Container images and local Compose stack implemented. |
 | 8 | CI/CD and smoke test | `feature/ci-cd` | Automated pipeline and API smoke script implemented. |
 | 9 | Postman, test report, and README | `feature/postman-docs` | Postman collection, test report, and project README prepared. |
+| 10 | Production deployment | `feature/production-deploy` | AWS EC2 backend and Vercel frontend deployment completed and verified. |
+| 11 | Deployed documentation | `feature/deployed-docs` | Live deployment, browser walkthrough, and deployment facts documented. |
 
 ## Lessons learned
 
@@ -27,8 +29,10 @@ The work followed an architect-style plan based on the project requirements and 
 - Depend on service interfaces so tests can use mocks across JDK versions.
 - Use atomic updates for state that may be changed concurrently.
 - Never hold a database transaction open across a remote service call.
-- Use `127.0.0.1` for healthchecks inside containers.
-- Smoke tests should retry while service discovery propagates.
+- Use the loopback address for healthchecks inside containers.
+- Wait for service discovery to propagate before running smoke tests.
+- AWS Free plan availability restricts eligible instance types; verify the launch wizard for the chosen account and region.
+- Validate operating system assumptions in deployment scripts against the operating systems actually used.
 - Never put secrets in git.
 
 ## Prompt template

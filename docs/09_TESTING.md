@@ -91,38 +91,42 @@ All suites below were run in this session. Backend commands were `mvn -B test` i
 | frontend | 73 | 0 | 0 | 0 |
 | **Total** | **177** | **0** | **0** | **0** |
 
-## 5. Verified in CI on 2026-11-27
+## 5. Verified in CI on 2026-11-28
 
-The project history supplied for this task records that the GitHub Actions pipeline was green on pull request #10 and on the `develop` branch. This local session did not query GitHub Actions history. The pipeline includes `backend-tests`, `frontend`, `docker-build`, and `compose-smoke`; the smoke stage runs `scripts/smoke-test.sh` followed by Newman.
+The user verified that GitHub Actions was green on both the `develop` and `main` branches, including the `compose-smoke` job with its end-to-end smoke test and Newman step. The pipeline includes `backend-tests`, `frontend`, `docker-build`, and `compose-smoke`.
 
 ## 6. Deliverables checklist
 
 - [x] Backend test suites run and actual counts recorded.
 - [x] Frontend test suite run and actual count recorded.
 - [x] Postman collection exported and JavaScript/JSON syntax validated. Newman was not run locally because no API calls are allowed for this task.
-- [ ] Manual browser verification of the full UI flow.
-- [ ] Production deployment verification.
+- [x] Manual browser verification of the full UI flow (verified 2026-11-28; see Section 8).
+- [x] Production deployment verification (verified 2026-11-28; see Section 8).
 - [ ] Load testing.
 
 ## 7. Pending
 
-- Deploy the backend to AWS EC2 and the frontend to Vercel.
-- Complete the manual UI walkthrough in a browser.
 - Run load testing.
 
-## 8. Known limitations
+## 8. Verified deployment and browser walkthrough (2026-11-28)
+
+The user verified the live deployment on AWS EC2 and Vercel. The API health endpoint returned `{"status":"UP"}` over HTTPS. The browser walkthrough verified bootstrap admin login; creating HR and IT users on the Team page; employee self-registration; HR creating an employee with LAPTOP and MONITOR, generating seven tasks; IT adding assets and assigning a laptop to the equipment task through the cross-service call; task status changes restricted by owner role; the employee seeing progress and issued equipment on My onboarding; and role-based navigation.
+
+GitHub Actions was green on `develop` and `main`, including the Compose smoke job and Newman step. The backend deployment uses Docker Hub images, with Postgres and application services reachable only on the Docker network; Caddy publishes ports 80 and 443.
+
+## 9. Known limitations
 
 - Hibernate uses `ddl-auto=update` instead of database migrations.
 - JWTs are stored in browser `localStorage`.
 - There are no email notifications or file uploads.
 - Only one stack runs at a time on the demo server.
 
-## 9. Bug list
+## 10. Bug list
 
 Fixed defects recorded for the project:
 
 - Spring `AccessDeniedException` returned 500 instead of 403; it is now mapped to 403.
 - A Postman script used a reserved sandbox variable; the collection design rule now prohibits reserved globals.
-- Container healthchecks used `localhost`; they now use `127.0.0.1`.
+- Container healthchecks use the loopback address instead of `localhost`.
 - Gateway routing returned 503 until discovery propagated; the smoke helper retries 502, 503, and 504 responses.
 - Date-only fields shifted with the time zone; date-only values now remain local dates without conversion shifts.

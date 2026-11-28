@@ -8,8 +8,8 @@
 | :--- | :--- | :--- |
 | frontend | 3001 | public |
 | api-gateway | 8090 | public |
-| discovery-server | 127.0.0.1:8771 | Eureka dashboard |
-| auth, employee, asset services | 127.0.0.1:8091, 8092, 8093 | Swagger UI from the host only |
+| discovery-server | host loopback, port 8771 | Eureka dashboard |
+| auth, employee, asset services | host loopback, ports 8091, 8092, 8093 | Swagger UI from the host only |
 | postgres | not published | internal network |
 
 A 4 GB Docker memory limit is the local target; `JAVA_OPTS` can be set to `-Xmx256m -XX:+UseSerialGC -XX:+ExitOnOutOfMemoryError`. On a small laptop, run only one project stack at a time.
@@ -161,8 +161,16 @@ bash scripts/deploy.sh --no-pull
 
 ## 5. Lessons carried over
 
-Use `127.0.0.1` in container healthchecks; wait for service discovery before smoke tests; keep timestamps in UTC; do not commit `.env`; and check AWS account, region, and billing eligibility before launch.
+Use the loopback address in container healthchecks; wait for service discovery before smoke tests; keep timestamps in UTC; do not commit `.env`; and check AWS account, region, and billing eligibility before launch.
 
 ## 6. Verified deployment
 
-Filled in after deployment.
+Verified by the user on 2026-11-28:
+
+- Frontend: [https://onboardhub-flax.vercel.app](https://onboardhub-flax.vercel.app), deployed on Vercel with the project root set to `frontend`.
+- API: [https://onboardhub-jyosna.duckdns.org](https://onboardhub-jyosna.duckdns.org), served over HTTPS by Caddy in front of `api-gateway`. `GET /actuator/health` returned `{"status":"UP"}`.
+- Backend host: a dedicated AWS EC2 server in `ap-southeast-2`, using `m7i-flex.large`, Ubuntu 24.04, the AWS Free plan, an Elastic IP, and a DuckDNS subdomain.
+- Images: six public `onboardhub-*` Docker Hub images, built and pushed by CI on pushes to `main`.
+- Network exposure: Postgres and application services are reachable only inside the Docker network; only Caddy publishes ports 80 and 443.
+- Browser verification: bootstrap admin login; creating HR and IT users; employee self-registration; HR creating an employee with LAPTOP and MONITOR and receiving seven generated tasks; IT adding assets and assigning a laptop through the cross-service flow; task actions restricted by owner role; employee progress and issued equipment on My onboarding; and role-based navigation.
+- CI: GitHub Actions was green on `develop` and `main`, including the Compose smoke end-to-end test and Newman step.
