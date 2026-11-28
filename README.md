@@ -56,7 +56,7 @@ One PostgreSQL server hosts the three service databases. Services register with 
 - Backend: Java 17, Spring Boot 3.2.12, Spring Cloud 2023.0.6, Spring Security, JWT, OpenFeign, Springdoc OpenAPI, JUnit 5, Mockito.
 - Data: PostgreSQL 16 in Compose; H2 for automated tests.
 - Frontend: React 18, Vite 5, Tailwind CSS 3.4, React Router 6, Axios, Vitest, Testing Library.
-- Delivery: Docker, Docker Compose, GitHub Actions, Docker Hub; planned hosting on AWS EC2 and Vercel.
+- Delivery: Docker, Docker Compose, GitHub Actions, Docker Hub, AWS EC2, and Vercel.
 
 ## Project structure
 
@@ -170,13 +170,13 @@ The [GitHub Actions workflow](.github/workflows/ci-cd.yml) runs `backend-tests`,
 
 ## Deployment overview
 
-The planned deployment uses Vercel for the frontend and one AWS EC2 server for backend containers, with Caddy providing HTTPS for a DuckDNS hostname. Deployment details and operations notes are in [docs/10_DEPLOYMENT.md#4-production-aws-ec2--vercel](docs/10_DEPLOYMENT.md#4-production-aws-ec2--vercel). Live deployment is pending.
+The verified deployment uses Vercel for the frontend and an AWS EC2 server for backend containers, with Caddy providing HTTPS for a DuckDNS hostname. Deployment details and operations notes are in [docs/10_DEPLOYMENT.md#4-production-aws-ec2--vercel](docs/10_DEPLOYMENT.md#4-production-aws-ec2--vercel).
 
 ## Security notes and known limitations
 
 Business services validate JWTs and enforce role permissions; the gateway routes and forwards the `Authorization` header but does not validate JWTs. Passwords are BCrypt-hashed, and the shared signing secret belongs in environment configuration. The frontend stores the session JWT in `localStorage`.
 
-Known limitations: Hibernate uses `ddl-auto=update` rather than migrations; there are no email notifications or file uploads; and the demo server is intended to run one stack at a time. Deployment, browser walkthrough, and load testing remain pending.
+Known limitations: Hibernate uses `ddl-auto=update` rather than migrations; there are no email notifications or file uploads; the demo server is intended to run one stack at a time; and the backend may be switched off to save AWS credits, in which case the live frontend will show connection errors. Load testing remains pending.
 
 ## AI-assisted workflow
 
@@ -184,7 +184,21 @@ This project followed a TrainingMug ADF workflow: review project docs, state `AS
 
 ## Live demo
 
-Live URLs are added after deployment.
+| Component | URL |
+| :--- | :--- |
+| Frontend | [https://onboardhub-flax.vercel.app](https://onboardhub-flax.vercel.app) |
+| API health | [https://onboardhub-jyosna.duckdns.org/actuator/health](https://onboardhub-jyosna.duckdns.org/actuator/health) |
+
+### How to try it
+
+1. Log in as the bootstrap administrator.
+2. On the Team page, create HR and IT users.
+3. Register an employee account.
+4. As HR, add an employee using the same email address as the registered account.
+5. As IT, add assets and assign an asset to the employee's equipment task.
+6. Log in as the employee to see onboarding progress and issued equipment.
+
+The backend may be switched off to save AWS credits. Connection errors from the live frontend can mean the backend is off.
 
 ## Screenshots
 
